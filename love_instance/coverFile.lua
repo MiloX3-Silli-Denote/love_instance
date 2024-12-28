@@ -204,6 +204,14 @@ function love.errorhandler(msg)
 	end
 end
 
+function love.send(msg)
+	Communicator:send(msg);
+end
+
+function love.collapse(msg)
+	Communicator:collapse(msg);
+end
+
 return Communicator;
 ]];
 
