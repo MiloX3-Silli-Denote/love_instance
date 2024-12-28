@@ -3,11 +3,11 @@ local coverFile = [[
 local Communicator = require("__NAME__");
 
 function love.run()
-    Communicator:init();
+	Communicator:init();
 
 	if love.load then
-        love.load(love.arg.parseGameArguments(arg), arg);
-    end
+		love.load(love.arg.parseGameArguments(arg), arg);
+	end
 
 	-- We don't want the first frame's dt to include time taken by love.load.
 	if love.timer then
