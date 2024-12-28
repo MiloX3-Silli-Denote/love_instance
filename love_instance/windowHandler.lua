@@ -222,6 +222,8 @@ function OpenWindow:openUnfused(files, name)
     local prevIdentity = love.filesystem.getIdentity();
     love.filesystem.setIdentity(name);
 
+	self:removePath("");
+
     local savpath = love.filesystem.getSaveDirectory();
 
     for k, v in pairs(files) do
@@ -243,6 +245,19 @@ function OpenWindow:openUnfused(files, name)
     io.popen('""' .. self.unfilteredArgs[-2] .. '" "' .. savpath .. '/.""');
 
     love.filesystem.setIdentity(prevIdentity);
+end
+
+function OpenWindow:removePath(path)
+	if love.filesystem.getInfo(path, "directory") then
+        for _, v in ipairs(love.filesystem.getDirectoryItems(path)) do
+            self:removePath(path .. '/' .. v);
+            love.filesystem.remove(path .. '/' .. v);
+        end
+
+		love.filesystem.remove(path);
+    elseif love.filesystem.getInfo(path) then
+        love.filesystem.remove(path);
+	end
 end
 
 function OpenWindow:newWindow(files)
