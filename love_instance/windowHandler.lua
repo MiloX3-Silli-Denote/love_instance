@@ -153,6 +153,39 @@ function OpenWindow:update()
     end
 end
 
+function OpenWindow:checkAvailableFilename(filename)
+	local dissallowedNames = {
+		{"CON", "'CON'"};
+		{"PRN", "'PRN'"};
+		{"AUX", "'AUX'"};
+		{"NUL", "'NUL'"};
+		{"COM%d", "'COM%d' (%d is a digit)"};
+		{"LPT%d", "'LPT%d' (%d is a digit)"};
+		{"CON%.[^/]*", "'CON' of any file type"}; -- sneaky but CON.a.txt is also not allowed
+		{"PRN%.[^/]*", "'PRN' of any file type"};
+		{"AUX%.[^/]*", "'AUX' of any file type"};
+		{"NUL%.[^/]*", "'NUL' of any file type"};
+		{"COM%d%.[^/]*", "'COM%d' (%d is a digit) of any file type"};
+		{"LPT%d%.[^/]*", "'LPT%d' (%d is a digit) of any file type"};
+		{"[^/]*%.", "anything that ends with a period"};
+		{"[^/]* ", "anything that ends with a space"};
+	};
+
+	local preparedStr = "/" .. string.gsub(filename, "/", "//") .. "/";
+	for i, v in ipairs(dissallowedNames) do
+		if string.find(preparedStr, "/" .. v[1] .. "/") then
+			return false, "files cannot be named " .. v[2];
+		end
+	end
+
+	local illegalCharacters = "[<>:\"|?*%c]";
+	if string.find(filename, illegalCharacters) then
+		return false, "filenames cannot contain: '" .. string,match(filename, illegalCharacters) .. "' (if nothing is visible then it is a control character)";
+	end
+
+	return true; -- got past all of the tests
+end
+
 function OpenWindow:openFused(files)
     local savpath = love.filesystem.getSaveDirectory();
     local exepath = love.filesystem.getSourceBaseDirectory();
@@ -162,6 +195,8 @@ function OpenWindow:openFused(files)
         if type(k) == "string" then
             local name = string.match(k, "^.+%..+$") or k .. ".lua";
 
+			assert(self:checkAvailableFilename(name)); -- has its error message built in
+			
             if string.find(name, "/") then
                 love.filesystem.createDirectory(string.match(name, "^(.+)/"));
             end
@@ -192,6 +227,8 @@ function OpenWindow:openUnfused(files, name)
     for k, v in pairs(files) do
         if type(k) == "string" then
             local name = string.match(k, "^.+%..+$") or k .. ".lua";
+			
+			assert(self:checkAvailableFilename(name)); -- has its error message built in
 
             if string.find(name, "/") then
                 love.filesystem.createDirectory(string.match(name, "^(.+)/"));
@@ -214,8 +251,10 @@ function OpenWindow:newWindow(files)
 
     if type(files.main) == "string" then
         files.main = "require(\"" .. COVER_FILENAME .. "\"); -- automagicaly generated code\r\n" .. files.main;
-    else
-        error("havent added support for main.lua file not being a string");
+    elseif files.main.type and files.main:type() == "File" then
+		files.main = "require(\"" .. COVER_FILENAME .. "\"); -- automagicaly generated code\r\n" .. files.main:read();
+	else
+        error("havent added support for main.lua file not being a string or love2d 'File'");
     end
 
     local name = files.name or "UNNAMED";
