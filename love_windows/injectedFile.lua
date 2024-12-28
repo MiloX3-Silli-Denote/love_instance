@@ -1,6 +1,4 @@
 local InjectedFile = [[
--- automagicaly generated code (yes all of it :3c)
-
 local MY_NAME = "__NAME__";
 local enet = require("enet");
 
