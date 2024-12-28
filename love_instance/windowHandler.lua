@@ -40,13 +40,8 @@ function OpenWindow:init(unfilteredArgs)
 end
 
 function OpenWindow:closeAll()
-    for i, v in ipairs(self.peers) do
-        v:send(window_event.__CLOSE, 0);
-    end
-
-    if self.server then
-        self.server:broadcast(window_event.__CLOSE, 0); -- channel 0 for event communication
-    end
+    self.server:broadcast(window_event.__CLOSE, 0); -- channel 0 for event communication
+    self.server:flush();
 end
 
 function OpenWindow:_server_connect(event)
@@ -74,7 +69,6 @@ function OpenWindow:_server_receive(event)
 
     if not self.peers[peer] then
         print("WARNING: recieving messages from non-allocated peer, ignoring and continuing");
-
         return;
     end
 
@@ -82,14 +76,12 @@ function OpenWindow:_server_receive(event)
         local msg = event.data;
         local form, data = string.match(msg, "^(__.-) (.*)$");
 
-        print(form .. "'", "." .. data .. ".");
-
         if form == window_event.__CONNECT then
             if self.windows[data] then
                 self.windows[data].peer = peer;
             end
         else
-            print("NEW MESSAGE : '" .. msg .. "'");
+            print("NEW EVENT MESSAGE (not good) : '" .. msg .. "'");
         end
 
         return;
@@ -145,8 +137,6 @@ function OpenWindow:update()
     local event = self.server:service();
 
     while event ~= nil do
-        print(event.channel, event.data, event.type);
-
         if event.type == event_type.receive then
             self:_server_receive(event);
         elseif event.type == event_type.connect then
@@ -171,6 +161,11 @@ function OpenWindow:openFused(files)
     for k, v in pairs(files) do
         if type(k) == "string" then
             local name = string.match(k, "^.+%..+$") or k .. ".lua";
+
+            if string.find(name, "/") then
+                love.filesystem.createDirectory(string.match(name, "^(.+)/"));
+            end
+
             love.filesystem.write(name, v);
         else
             print("WARNING: could not create file of non string type name");
@@ -197,6 +192,11 @@ function OpenWindow:openUnfused(files, name)
     for k, v in pairs(files) do
         if type(k) == "string" then
             local name = string.match(k, "^.+%..+$") or k .. ".lua";
+
+            if string.find(name, "/") then
+                love.filesystem.createDirectory(string.match(name, "^(.+)/"));
+            end
+
             love.filesystem.write(name, v);
         else
             print("WARNING: could not create file of non string type name");
@@ -213,7 +213,7 @@ function OpenWindow:newWindow(files)
     assert(files.main ~= nil, "cannot create a window without a main.lua file");
 
     if type(files.main) == "string" then
-        files.main = "Parent_Window = require(\"" .. COVER_FILENAME .. "\"); -- automagicaly generated code\r\n" .. files.main;
+        files.main = "require(\"" .. COVER_FILENAME .. "\"); -- automagicaly generated code\r\n" .. files.main;
     else
         error("havent added support for main.lua file not being a string");
     end
@@ -241,7 +241,6 @@ function OpenWindow:newWindow(files)
     end
 
     self.windows[name] = {callback = callback, queue = {}};
-    print(name);
 end
 
 function OpenWindow:closeWindow(name)
