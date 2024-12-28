@@ -18,8 +18,8 @@ function Communicator:_server_receive(event)
     end
 
     if event.channel == 1 then
-        if love.recieve then
-            love.recieve(event.data);
+        if love.receive then
+            love.receive(event.data);
         end
     else
         if event.data == "__CLOSE" then
