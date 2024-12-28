@@ -1,4 +1,6 @@
 local InjectedFile = [[
+-- automagicaly generated code (yes all of it :3c)
+
 local MY_NAME = "__NAME__";
 local enet = require("enet");
 
@@ -6,10 +8,8 @@ local Communicator = {};
 Communicator.__index = Communicator;
 
 function Communicator:init()
-    print("init??");
     self.host = enet.host_create();
     self.server = self.host:connect("localhost:1345", 2);
-    self.toClose = false;
 end
 
 function Communicator:_server_receive(event)
@@ -45,14 +45,9 @@ function Communicator:update()
             self:_server_disconnect(event);
         elseif event.type == "connect" then
             event.peer:send("__CONNECT " .. MY_NAME, 0)
-            print("child: CONNECTED!!!");
         end
 
         event = self.host:service();
-    end
-
-    if self.toClose then
-        love.event.quit();
     end
 end
 
@@ -66,7 +61,8 @@ function Communicator:collapse(msg)
         self:send(msg);
     end
 
-    self.toClose = true;
+    self.host:flush();
+    love.event.quit();
 end
 
 function Communicator:send(data)
