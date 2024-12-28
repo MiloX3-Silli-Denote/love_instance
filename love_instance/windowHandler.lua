@@ -153,7 +153,9 @@ function OpenWindow:update()
     end
 end
 
-function OpenWindow:checkAvailableFilename(filename)
+function OpenWindow:checkAvailableFilename(filename) -- probably works, idk
+    filename = string.gsub(filename, "\\", "/");
+
 	local dissallowedNames = {
 		{"CON", "'CON'"};
 		{"PRN", "'PRN'"};
@@ -169,18 +171,25 @@ function OpenWindow:checkAvailableFilename(filename)
 		{"LPT%d%.[^/]*", "'LPT%d' (%d is a digit) of any file type"};
 		{"[^/]*%.", "anything that ends with a period"};
 		{"[^/]* ", "anything that ends with a space"};
+        {"", "nothing"};
+        {"%.[^./]*", "nothing"};
+        {"%.", "'.', special case for linux"};
+        {"%.%.", "'..', special case for linux"};
+        {"[^/]*<[^/]*", "anything containing '<'"};
+        {"[^/]*>[^/]*", "anything containing '>'"};
+        {"[^/]*:[^/]*", "anything containing ':'"};
+        {"[^/]*\"[^/]*", "anything containing '\"'"};
+        {"[^/]*|[^/]*", "anything containing '|'"};
+        {"[^/]*%?[^/]*", "anything containing '?'"};
+        {"[^/]*%*[^/]*", "anything containing '*'"};
+        {"[^/]*%c[^/]*", "anything containing control characters"};
 	};
 
-	local preparedStr = "/" .. string.gsub(filename, "/", "//") .. "/";
+	local preparedStr = "/" .. filename .. "/";
 	for i, v in ipairs(dissallowedNames) do
 		if string.find(preparedStr, "/" .. v[1] .. "/") then
 			return false, "files cannot be named " .. v[2];
 		end
-	end
-
-	local illegalCharacters = "[<>:\"|?*%c]";
-	if string.find(filename, illegalCharacters) then
-		return false, "filenames cannot contain: '" .. string.match(filename, illegalCharacters) .. "' (if nothing is visible then it is a control character)";
 	end
 
 	return true; -- got past all of the tests
@@ -193,7 +202,8 @@ function OpenWindow:openFused(files)
 
     for k, v in pairs(files) do
         if type(k) == "string" then
-            local name = string.match(k, "^.+%..+$") or k .. ".lua";
+            local name = string.match(k, "^.+%..*$") or k .. ".lua";
+            name = string.gsub(name, "\\", "/");
 
 			assert(self:checkAvailableFilename(name)); -- has its error message built in
 
