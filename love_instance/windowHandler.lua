@@ -1,10 +1,10 @@
 local enet = require("enet");
 
-local path = string.match((...), "(.+)[./]") or "";
+local path = string.match((...), ".+[./]") or "";
 
-local DefaultConf = require(path .. "/defaultConf");
-local InjectFile = require(path .. "/injectedFile");
-local CoverFile = require(path .. "/coverFile");
+local DefaultConf = require(path .. "defaultConf");
+local InjectFile = require(path .. "injectedFile");
+local CoverFile = require(path .. "coverFile");
 
 local MAX_WINDOW_COUNT = 64;
 local SERVER_CHANNEL_COUNT = 2;
