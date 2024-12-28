@@ -180,7 +180,7 @@ function OpenWindow:checkAvailableFilename(filename)
 
 	local illegalCharacters = "[<>:\"|?*%c]";
 	if string.find(filename, illegalCharacters) then
-		return false, "filenames cannot contain: '" .. string,match(filename, illegalCharacters) .. "' (if nothing is visible then it is a control character)";
+		return false, "filenames cannot contain: '" .. string.match(filename, illegalCharacters) .. "' (if nothing is visible then it is a control character)";
 	end
 
 	return true; -- got past all of the tests
@@ -196,7 +196,7 @@ function OpenWindow:openFused(files)
             local name = string.match(k, "^.+%..+$") or k .. ".lua";
 
 			assert(self:checkAvailableFilename(name)); -- has its error message built in
-			
+
             if string.find(name, "/") then
                 love.filesystem.createDirectory(string.match(name, "^(.+)/"));
             end
@@ -222,14 +222,14 @@ function OpenWindow:openUnfused(files, name)
     local prevIdentity = love.filesystem.getIdentity();
     love.filesystem.setIdentity(name);
 
-	self:removePath("");
+	self:emptyPath("");
 
     local savpath = love.filesystem.getSaveDirectory();
 
     for k, v in pairs(files) do
         if type(k) == "string" then
             local name = string.match(k, "^.+%..+$") or k .. ".lua";
-			
+
 			assert(self:checkAvailableFilename(name)); -- has its error message built in
 
             if string.find(name, "/") then
@@ -247,16 +247,12 @@ function OpenWindow:openUnfused(files, name)
     love.filesystem.setIdentity(prevIdentity);
 end
 
-function OpenWindow:removePath(path)
-	if love.filesystem.getInfo(path, "directory") then
-        for _, v in ipairs(love.filesystem.getDirectoryItems(path)) do
-            self:removePath(path .. '/' .. v);
-            love.filesystem.remove(path .. '/' .. v);
+function OpenWindow:emptyPath(dir)
+	if love.filesystem.getInfo(dir, "directory") then
+        for _, v in ipairs(love.filesystem.getDirectoryItems(dir)) do
+            self:emptyPath(dir .. '/' .. v);
+            love.filesystem.remove(dir .. '/' .. v);
         end
-
-		love.filesystem.remove(path);
-    elseif love.filesystem.getInfo(path) then
-        love.filesystem.remove(path);
 	end
 end
 
