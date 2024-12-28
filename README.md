@@ -52,7 +52,7 @@ local newInstance = {
 Love_Instance:newWindow(newInstance);
 ```
 
-### Send commands toand from the new window
+### Send commands to and from the new window
 after creating a window, Love_Instance will remember it by the name that was assigned (remember that unnamed window default to "UNNAMED")
 to send a command to the new window you can call ```Love_Instance:tellWindow(windowName, message);``` with the name of the window and a string to be sent
 in order for an instance to read and react to the commands, you must define a new ```love.receive(msg)``` function to be called whenever a new command is sent (remember, only strings can be sent so get creative with how you send and interpret other data types).
