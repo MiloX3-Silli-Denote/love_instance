@@ -1,6 +1,6 @@
-local path = string.match((...), "(.+)[./]") or "";
+local path = string.match((...), ".+[./]") or "";
 
-local OpenWindow = require(path .. "/windowHandler");
+local OpenWindow = require(path .. "windowHandler");
 
 function love.run()
     OpenWindow:init(arg);
