@@ -4,6 +4,10 @@ local InjectedFile = [[
 local MY_NAME = "__NAME__";
 local enet = require("enet");
 
+function love.getInstanceName()
+    return MY_NAME;
+end
+
 local Communicator = {};
 Communicator.__index = Communicator;
 
