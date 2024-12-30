@@ -41,6 +41,7 @@ end
 
 function Communicator:update()
     local event = self.host:service();
+    local maxCount = 10000;
 
     while event ~= nil do
         if event.type == "receive" then
@@ -51,6 +52,11 @@ function Communicator:update()
             event.peer:send("__CONNECT " .. MY_NAME, 0)
         end
 
+        maxCount = maxCount - 1;
+        if maxCount <= 0 then
+            break;
+        end
+
         event = self.host:service();
     end
 end
@@ -58,6 +64,7 @@ end
 function Communicator:close()
     if self.server then
         self.server:disconnect();
+        self.host:flush();
     end
 end
 function Communicator:collapse(msg)
@@ -65,7 +72,6 @@ function Communicator:collapse(msg)
         self:send(msg);
     end
 
-    self.host:flush();
     love.event.quit();
 end
 

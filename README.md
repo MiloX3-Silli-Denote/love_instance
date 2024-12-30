@@ -34,7 +34,7 @@ excpetion 1: the 'name' key in the table is reserved for the name of the project
 exception 2: the 'callback' key in the table is reserved for communication between the windows, when the window sends information back to the parent window it will call the 'callback' function with the message as the argument
 
 ### Create a Window
-call ```Love_Instance:newWindow(files);``` with the table of files to open a new window
+call ```Love_Instance:newWindow(files);``` with the table of files to open a new window to get a window instance object
 ```lua
 local newInstance = {
   main = mainFile;
@@ -49,15 +49,41 @@ local newInstance = {
   end;
 };
 
-Love_Instance:newWindow(newInstance);
+local platformer = Love_Instance:newWindow(newInstance);
 ```
+
+### Opening a window
+after creating a window you can open it at any time by calling the ```:open();``` function on the window object, if ```:open();``` is called on a window that is already opened then it will NOT open
+
+if you call ```:open();``` on a window object soon after closing it then there is a chance that it hasnt had enough time to fully close and it wont open, to get around this you can instead call ```:queueOpen();``` on the window object to have it open as early as possible, ```:unqueueOpen();``` can be used to undo this call if you want to stop it from opening (only works if you call it before it actually opens obviously)
+```:isOpen();``` can be called on a window object to check if it is open.
+
+### Preloading and Editing code
+when creating a new window, all of the code will be preloaded into a directory and while the window is NOT open it can be modified by calling several different functions.
+```:editFile(filename, data);``` will edit a file by rewriting it into the data given (data can be a FileData object, string, or File object)
+```:addFile(filename, data);``` essentially does the same as ```:editFile(filename, data);``` but more readable and intended to be used to create a file that doesnt exist yet (though they are 100% interchangeable in any circumstance).
+```:removeFile(filename);``` will delete a file from the directory.
+
+whenever calling an editing function it will try to write it to the directory as soon as possible (but dont count on it being instant).
+if a window is opened but any edits havent been completed then it will prioritize completing the edits before opening the window.
+
+reading a file can be done even when the window is open and can be done with these functions:
+```:readFile(filename);``` will return the contents of a file as a string.
+```:getFile(filename);``` will return the content of a file as a File object.
+```:getFileData(filename);``` will return the content of a file as a FileData object.
+
+### Unloading a window
+to delete all of the contents of a window's directory you can call ```:delete();``` on it.
+this will completely clear its directory and open the name up for a different window, although it wont actually be gone until it is closed, it only queue's it to be killed, so check if the name can be used before making a new window with its name by calling ```Love_Instance:checkName(name);```.
 
 ### Send commands to and from the new window
 after creating a window, Love_Instance will remember it by the name that was assigned (remember that unnamed window default to "UNNAMED")
-to send a command to the new window you can call ```Love_Instance:tellWindow(windowName, message);``` with the name of the window and a string to be sent
+to send a command to the new window you can call ```:send(message);``` on a window instance object with a string as the argument which will call ```love.receive()``` in the instance window
 in order for an instance to read and react to the commands, you must define a new ```love.receive(msg)``` function to be called whenever a new command is sent (remember, only strings can be sent so get creative with how you send and interpret other data types).
 
 a window instance can send commands back to the parent window from the new ```love.send(msg);``` and ```love.collapse(msg);``` functions
 ```love.send(msg);``` will send a string back to the parent window which will call the callback function with the string as the argument, and ```love.collapse(msg);``` will do the same but will also close the window (kind of like a ```return msg;``` but for the entire window (note that calling ```love.event.quit();``` shortly after calling ```love.send(msg);``` may cause the message to not get sent properly).
 
 whenever the new window instance closes, whether it be from a ```love.collapse(msg);``` call or from the user closing the window or a ```love.event.quit();``` call, the callback function will be called with "close" as an argument
+
+to close a window from the parent window you can call ```:close();``` on the window instance object which will close it

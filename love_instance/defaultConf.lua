@@ -2,7 +2,12 @@ local DefaultConf = [[
 function love.conf(t)
     t.title = "__NAME__";
     t.version = "11.4";
-    t.console = false; -- if console is active it wont open a new console if one is already open but will print to any other opened console (ie the console the parent love instance opened
+
+    t.console = true;
+    -- if console is active it wont open a new console
+    -- it will print to the opened console if one is already open
+    -- if console is dissabled but a 'print()' attempt is made then it will *SOMETIMES* crash (very finickey and iconsistent)
+
     t.window.width = 800;
     t.window.height = 600;
     t.vSync = false;
