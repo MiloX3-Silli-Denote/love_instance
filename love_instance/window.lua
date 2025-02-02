@@ -25,18 +25,20 @@ function Window.new(files, name, callback, unfilteredArgs)
     end
 
     if fused then
+	local exepath = love.filesystem.getSourceBaseDirectory();
+
         instance:addFile("lovec.exe", love.filesystem.newFileData("lovec.exe"));
 
         -- if you ever write to the folder 'loveDLLFiles' then you WILL fuck this whole thing up... dont do it (also you will lose that data)
         assert(love.filesystem.mount(exepath, "loveDLLFiles"), "Could not mount source to base directory");
 
-	    for _, v in ipairs(love.filesystem.getDirectoryItems("loveDLLFiles")) do
+	for _, v in ipairs(love.filesystem.getDirectoryItems("loveDLLFiles")) do
             if string.sub(v, -4,-1) == ".dll" then
                 instance:addFile(v, love.filesystem.newFileData("loveDLLFiles/" .. v));
             end
-	    end
+	end
 
-	    love.filesystem.unmount("loveDLLFiles");
+	love.filesystem.unmount("loveDLLFiles");
     end
 
     instance:clearIdentity();
